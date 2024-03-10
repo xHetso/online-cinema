@@ -1,12 +1,18 @@
 import { prop } from '@typegoose/typegoose'
+import { Base, TimeStamps } from '@typegoose/typegoose/lib/defaultClasses'
 
-export class User {
-  @prop({ required: true })
+export interface UserModel extends Base {}
+
+export class UserModel extends TimeStamps {
+  @prop({ unique: true })
   email: string
 
-  @prop({ required: true })
+  @prop()
   password: string
 
-  @prop({ required: true })
-  name: string
+  @prop({ default: false })
+  isAdmin?: boolean
+
+  @prop({ default: [] })
+  favorites?: []
 }
