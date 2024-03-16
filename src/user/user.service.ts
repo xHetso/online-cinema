@@ -11,11 +11,11 @@ export class UserService {
 		@InjectModel(UserModel) private readonly userModel: ModelType<UserModel>,
 	) {}
 
-	async byId(id: string): Promise<DocumentType<UserModel>> {
-		const user = await this.userModel.findById(id).exec()
+	async byId(_id: string): Promise<DocumentType<UserModel>> {
+		const user = await this.userModel.findById(_id)
+		if (!user) throw new NotFoundException('User not found')
 
-		if (user) return user
-		throw new NotFoundException('User not found')
+		return user
 	}
 
 	async updateProfile(_id: string, dto: UpdateUserDto) {
