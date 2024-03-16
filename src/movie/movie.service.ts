@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common'
 import { ModelType } from '@typegoose/typegoose/lib/types'
 import { Types } from 'mongoose'
 import { InjectModel } from 'nestjs-typegoose'
+import { TelegramService } from 'src/telegram/telegram.service'
 import { UpdateMovieDto } from './dto/update-movie.dto'
 import { MovieModel } from './movie.model'
 
@@ -9,6 +10,7 @@ import { MovieModel } from './movie.model'
 export class MovieService {
 	constructor(
 		@InjectModel(MovieModel) private readonly MovieModel: ModelType<MovieModel>,
+		private readonly telegramService: TelegramService,
 	) {}
 
 	async getAll(searchTerm?: string) {
@@ -117,7 +119,10 @@ export class MovieService {
 	}
 
 	async update(_id: string, dto: UpdateMovieDto) {
-		/* Telegram notifications */
+		if (!dto.isSendTelegram) {
+			await this.sendNotification(dto)
+			dto.isSendTelegram = true
+		}
 
 		const updateDoc = await this.MovieModel.findByIdAndUpdate(_id, dto, {
 			new: true,
@@ -133,5 +138,29 @@ export class MovieService {
 		if (!deleteDoc) throw new NotFoundException('Movie not found')
 
 		return deleteDoc
+	}
+
+	async sendNotification(dto: UpdateMovieDto) {
+		//if (process.env.NODE_ENV !== 'development')
+		//await this.telegramService.sendPhoto(dto.poster)
+
+		await this.telegramService.sendPhoto(
+			'https://anime1.best/uploads/posts/2016-09/1474561663_0.webp',
+		)
+
+		const message = `<b>${dto.title}</b>`
+
+		await this.telegramService.sendMessage(message, {
+			reply_markup: {
+				inline_keyboard: [
+					[
+						{
+							url: 'https://okko.tv/movie/free-guy',
+							text: 'Go to watch',
+						},
+					],
+				],
+			},
+		})
 	}
 }
